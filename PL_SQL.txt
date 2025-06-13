@@ -1,0 +1,132 @@
+//JOins
+select e.name, d.dept_name
+from employee e
+inner join department d on e.dept_id = d.dept_id;
+
+select e.name, d.dept_name
+from employee e
+left join department d on e.dept_id = d.dept_id;
+
+select e.name, d.dept_name
+from employee e
+right join department d on e.dept_id = d.dept_id;
+
+select e1.name as employee1, e2.name as employee2, e1.dept_id
+from employee e1
+join employee e2
+on  e1.dept_id = e2.dept_id
+and e1.emp_id <> e2.emp_id
+
+//procedure
+create or replace procedure calculate_bonus(
+    p_salary in number
+) is
+    v_bonus number;
+    v_total number;
+begin
+    v_bonus := p_salary * 0.05;
+    v_total := p_salary + v_bonus;
+
+    dbms_output.put_line('salary: ' || p_salary);
+    dbms_output.put_line('bonus (5%): ' || v_bonus);
+    dbms_output.put_line('total salary: ' || v_total);
+end;
+/
+
+
+create or replace procedure get_salary_by_dept(
+    dept in varchar2,
+    sal out number
+) as
+begin
+    if dept = 'sales' then
+        sal := 20000;
+    elsif dept = 'admin' then
+        sal := 30000;
+    elsif dept = 'it' then
+        sal := 50000;
+    else
+        sal := 0;  -- dept not found
+    end if;
+end;
+/
+
+
+//Function
+create or replace trigger banktr
+after insert on transaction
+for each row
+when (:new.trans_type = 'deposit')
+begin
+    update customer
+    set balance = balance + :new.amount
+    where cust_id = :new.cust_id;
+end;
+/
+
+create or replace function get_bonus(
+    p_salary in number
+) return number
+is
+    v_bonus number;
+begin
+    v_bonus := p_salary * 0.05;
+    return v_bonus;
+end;
+/
+
+create or replace procedure calc_tax(prc in number)
+is
+    tax number;
+begin
+    tax := prc * 0.18;
+    dbms_output.put_line('tax is: ' || tax);
+end;
+/
+create or replace procedure inc_cnt(cnt in out number)
+is
+begin
+    cnt := cnt + 1;
+end;
+/
+
+
+
+//Triggers
+
+create or replace trigger trg_price
+after update on product
+for each row
+begin
+    insert into price_log(pid, old_price, new_price, upd_time)
+    values(:old.pid, :old.price, :new.price, sysdate);
+end;
+/
+
+create or replace view emp_view as
+select emp_id, name, salary
+from employee
+where salary > 30000;
+declare
+    v_name employee.name%type;
+    v_sal  employee.salary%type;
+begin
+    for rec in (select name, salary from emp_view) loop
+        dbms_output.put_line('Name: ' || rec.name || ', Salary: ' || rec.salary);
+    end loop;
+end;
+/
+create or replace view emp_rank_view as
+select 
+    emp_id,
+    name,
+    dept,
+    salary,
+    rank() over (order by salary desc) as rank_sal
+from employee;
+
+
+
+
+
+
